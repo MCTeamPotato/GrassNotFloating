@@ -5,6 +5,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
 @Mod(GrassNotFloating.MOD_ID)
@@ -12,7 +13,7 @@ public class GrassNotFloating {
     public static final String MOD_ID = "grassnotfloating";
 
     public static boolean isGrass(@NotNull Block block) {
-        ResourceLocation id = block.getRegistryName();
+        ResourceLocation id = ForgeRegistries.BLOCKS.getKey(block);
         if (id == null) return false;
         return id.toString().contains("grass");
     }
