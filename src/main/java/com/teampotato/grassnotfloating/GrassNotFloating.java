@@ -2,9 +2,9 @@ package com.teampotato.grassnotfloating;
 
 import com.teampotato.grassnotfloating.api.Floatable;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -43,7 +43,7 @@ public class GrassNotFloating {
     public GrassNotFloating() {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CONFIG);
         FMLJavaModLoadingContext.get().getModEventBus().addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> ForgeRegistries.BLOCKS.forEach(block -> {
-            ResourceLocation id = ForgeRegistries.BLOCKS.getKey(block);
+            ResourceLocation id = block.getRegistryName();
             if (id != null) ((Floatable)block).grassNotFloating$setShouldNotFloat(BLOCKS_THAT_SHOULD_NOT_FLOAT.get().contains(id.toString()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_NAMESPACE_ONLY.get().contains(id.getNamespace()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_PATH_ONLY.get().stream().anyMatch(s -> s.contains(id.getPath())));
         })));
     }

@@ -1,7 +1,7 @@
 package com.teampotato.grassnotfloating.mixin;
 
 import com.teampotato.grassnotfloating.api.Floatable;
-import net.minecraft.world.level.block.Block;
+import net.minecraft.block.Block;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 
