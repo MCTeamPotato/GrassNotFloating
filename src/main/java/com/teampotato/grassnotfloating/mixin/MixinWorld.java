@@ -20,7 +20,7 @@ public abstract class MixinWorld {
 
     @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At("HEAD"), cancellable = true)
     private void grassNotFloating(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft, CallbackInfoReturnable<Boolean> cir) {
-        if (this.getBlockState(pPos.below()).is(Blocks.AIR) && ((Floatable)pState.getBlock()).grassNotFloating$shouldNotFloat()) {
+        if (pPos.getY() > 2 && this.getBlockState(pPos.below()).is(Blocks.AIR) && ((Floatable)pState.getBlock()).grassNotFloating$shouldNotFloat()) {
             cir.setReturnValue(setBlock(pPos, GrassNotFloating.AIR, pFlags, pRecursionLeft));
         }
     }
