@@ -1,6 +1,7 @@
 package com.teampotato.grassnotfloating.mixin;
 
 import com.teampotato.grassnotfloating.GrassNotFloating;
+import com.teampotato.grassnotfloating.api.Floatable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -19,7 +20,7 @@ public abstract class MixinWorld {
 
     @Inject(method = "setBlock(Lnet/minecraft/core/BlockPos;Lnet/minecraft/world/level/block/state/BlockState;II)Z", at = @At("HEAD"), cancellable = true)
     private void grassNotFloating(BlockPos pPos, BlockState pState, int pFlags, int pRecursionLeft, CallbackInfoReturnable<Boolean> cir) {
-        if (this.getBlockState(pPos.below()).is(Blocks.AIR) && GrassNotFloating.isGrass(pState.getBlock())) {
+        if (this.getBlockState(pPos.below()).is(Blocks.AIR) && ((Floatable)pState.getBlock()).grassNotFloating$shouldNotFloat()) {
             cir.setReturnValue(setBlock(pPos, GrassNotFloating.AIR, pFlags, pRecursionLeft));
         }
     }

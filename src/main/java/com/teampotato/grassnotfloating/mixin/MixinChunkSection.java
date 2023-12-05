@@ -1,6 +1,7 @@
 package com.teampotato.grassnotfloating.mixin;
 
 import com.teampotato.grassnotfloating.GrassNotFloating;
+import com.teampotato.grassnotfloating.api.Floatable;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunkSection;
@@ -18,7 +19,7 @@ public abstract class MixinChunkSection {
 
     @Inject(method = "setBlockState(IIILnet/minecraft/world/level/block/state/BlockState;Z)Lnet/minecraft/world/level/block/state/BlockState;", at = @At("HEAD"), cancellable = true)
     private void grassNotFloating(int pX, int pY, int pZ, BlockState pState, boolean pUseLocks, CallbackInfoReturnable<BlockState> cir) {
-        if (this.getBlockState(pX, pY - 1, pZ).is(Blocks.AIR) && GrassNotFloating.isGrass(pState.getBlock())) {
+        if (this.getBlockState(pX, pY - 1, pZ).is(Blocks.AIR) && ((Floatable)pState.getBlock()).grassNotFloating$shouldNotFloat()) {
             cir.setReturnValue(setBlockState(pX, pY, pZ, GrassNotFloating.AIR, pUseLocks));
         }
     }
