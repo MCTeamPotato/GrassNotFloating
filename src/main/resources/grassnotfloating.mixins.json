@@ -2,7 +2,7 @@
   "required": true,
   "package": "com.teampotato.grassnotfloating.mixin",
   "compatibilityLevel": "JAVA_8",
-  "refmap": "doespotatotick.refmap.json",
+  "refmap": "grassnotfloating.refmap.json",
   "mixins": [
     "MixinBlock",
     "MixinChunkSection",

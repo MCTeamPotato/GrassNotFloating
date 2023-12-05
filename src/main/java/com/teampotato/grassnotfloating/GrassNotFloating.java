@@ -33,9 +33,9 @@ public class GrassNotFloating {
                 "(1) and (2)'s values will be compare strictly and require an equal on detection",
                 "for (3), it's not strictly but use a `contains` check. For things like potato_grass, it will also works well"
         );
-        BLOCKS_THAT_SHOULD_NOT_FLOAT = builder.defineList("(1) Blocks That Should Not Float", new ObjectArrayList<>(), o -> true);
+        BLOCKS_THAT_SHOULD_NOT_FLOAT = builder.defineList("(1) Blocks That Should Not Float", ObjectArrayList.wrap(new String[]{"minecraft:grass"}), o -> true);
         BLOCKS_THAT_SHOULD_NOT_FLOAT_NAMESPACE_ONLY = builder.defineList("(2) Blocks That Should Not Float (Namespace Only)", ObjectArrayList.wrap(new String[]{}), o -> true);
-        BLOCKS_THAT_SHOULD_NOT_FLOAT_PATH_ONLY = builder.defineList("(3) Blocks That Should Not Float (Path Only)", ObjectArrayList.wrap(new String[]{"grass"}), o -> true);
+        BLOCKS_THAT_SHOULD_NOT_FLOAT_PATH_ONLY = builder.defineList("(3) Blocks That Should Not Float (Path Only)", ObjectArrayList.wrap(new String[]{}), o -> true);
         builder.pop();
         CONFIG = builder.build();
     }
@@ -44,7 +44,7 @@ public class GrassNotFloating {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CONFIG);
         FMLJavaModLoadingContext.get().getModEventBus().addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> ForgeRegistries.BLOCKS.forEach(block -> {
             ResourceLocation id = ForgeRegistries.BLOCKS.getKey(block);
-            if (id != null) ((Floatable)block).grassNotFloating$setShouldNotFloat(BLOCKS_THAT_SHOULD_NOT_FLOAT.get().contains(id.toString()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_NAMESPACE_ONLY.get().contains(id.getNamespace()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_PATH_ONLY.get().contains(id.getPath()));
+            if (id != null) ((Floatable)block).grassNotFloating$setShouldNotFloat(BLOCKS_THAT_SHOULD_NOT_FLOAT.get().contains(id.toString()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_NAMESPACE_ONLY.get().contains(id.getNamespace()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_PATH_ONLY.get().stream().anyMatch(s -> s.contains(id.getPath())));
         })));
     }
 }
