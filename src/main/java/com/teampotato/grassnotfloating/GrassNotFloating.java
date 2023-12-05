@@ -44,7 +44,7 @@ public class GrassNotFloating {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, CONFIG);
         FMLJavaModLoadingContext.get().getModEventBus().addListener((FMLCommonSetupEvent event) -> event.enqueueWork(() -> ForgeRegistries.BLOCKS.forEach(block -> {
             ResourceLocation id = ForgeRegistries.BLOCKS.getKey(block);
-            if (id != null) ((Floatable)block).grassNotFloating$setShouldNotFloat(BLOCKS_THAT_SHOULD_NOT_FLOAT.get().contains(id.toString()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_NAMESPACE_ONLY.get().contains(id.getNamespace()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_PATH_ONLY.get().stream().anyMatch(s -> s.contains(id.getPath())));
+            if (id != null) ((Floatable)block).grassNotFloating$setShouldNotFloat(BLOCKS_THAT_SHOULD_NOT_FLOAT.get().contains(id.toString()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_NAMESPACE_ONLY.get().contains(id.getNamespace()) || BLOCKS_THAT_SHOULD_NOT_FLOAT_PATH_ONLY.get().stream().anyMatch(s -> id.getPath().contains(s)));
         })));
     }
 }
