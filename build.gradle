@@ -1,82 +1,13 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net' }
-        maven { url = 'https://maven.parchmentmc.org' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
-        classpath 'org.parchmentmc:librarian:1.+'
-        classpath group: 'org.spongepowered',  name: 'mixingradle', version: '0.7+'
-    }
+plugins {
+	id 'fabric-loom' version '1.3-SNAPSHOT'
 }
-
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'org.spongepowered.mixin'
 
 version = "${minecraft_version}-${mod_version}"
-group = "com.teampotato.${mod_id}"
-archivesBaseName = "${mod_id}"
+group = maven_group
 
-java.toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-
-minecraft {
-    mappings channel: "${mappings_channel}", version: "${mappings_version}-${minecraft_version}"
-    // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
-    runs {
-        client {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'info'
-            properties 'mixin.env.disableRefMap': 'true'
-            arg "-mixin.config=${mod_id}.mixins.json"
-
-            mods {
-                grassnotfloating {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'info'
-            properties 'mixin.env.disableRefMap': 'true'
-            arg "-mixin.config=${mod_id}.mixins.json"
-
-            mods {
-                grassnotfloating {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        data {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'REGISTRIES'
-            property 'forge.logging.console.level', 'info'
-            properties 'mixin.env.disableRefMap': 'true'
-            arg "-mixin.config=${mod_id}.mixins.json"
-
-            args '--mod', "${mod_id}", '--all', '--output', file('src/generated/resources/'), '--existing', file('src/main/resources/')
-
-            mods {
-                grassnotfloating {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
+base {
+	archivesName = project.archives_base_name
 }
-
-mixin {
-    add sourceSets.main, "${mod_id}.refmap.json"
-    config "${mod_id}.mixins.json"
-}
-
-sourceSets.main.resources { srcDir 'src/generated/resources' }
 
 repositories {
     maven {
@@ -88,21 +19,48 @@ repositories {
     maven { url = "https://jitpack.io" }
 }
 
+loom {
+    splitEnvironmentSourceSets()
+
+	mods {
+		"grassnotfloating" {
+			sourceSet sourceSets.main
+		}
+	}
+
+}
+
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-    implementation 'org.jetbrains:annotations:24.0.0'
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+	mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	modImplementation "curse.maven:forge-config-api-port-fabric-547434:4583000"
+	implementation "com.electronwill.night-config:core:3.6.6"
+	implementation "com.electronwill.night-config:toml:3.6.6"
+	//modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+	inputs.property "version", project.version
+
+	filesMatching("fabric.mod.json") {
+		expand "version": project.version
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release.set(17)
+}
+
+java {
+	withSourcesJar()
+
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
 jar {
-    manifest {
-        attributes([
-            "Implementation-Title": "${mod_id}",
-            "Implementation-Version": "${mod_version}",
-            "Implementation-Vendor" :"TeamPotato",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
+	from("LICENSE") {
+		rename { "${it}_${project.base.archivesName.get()}"}
+	}
 }
-
-jar.finalizedBy('reobfJar') 

@@ -1,0 +1,27 @@
+{
+	"schemaVersion": 1,
+	"id": "grassnotfloating",
+	"version": "${version}",
+	"name": "GrassNotFloating",
+	"description": "A Minecraft Mod",
+	"authors": [
+		"TeamPotato"
+	],
+	"contact": {
+		"homepage": "",
+		"sources": ""
+	},
+	"license": "LGPL-v3",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.teampotato.grassnotfloating.GrassNotFloating"
+		]
+	},
+	"mixins": [
+		"grassnotfloating.mixins.json"
+	],
+	"depends": {
+		"minecraft": "~1.20.1"
+	}
+}
