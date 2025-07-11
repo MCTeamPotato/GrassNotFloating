@@ -13,11 +13,11 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.event.world.ChunkEvent;
-import net.minecraftforge.fml.ModLoadingContext;
+import net.minecraftforge.event.level.ChunkEvent;
+import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.server.FMLServerStartingEvent;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.registries.ForgeRegistries;
 
 @Mod(GrassNotFloating.MOD_ID)
@@ -29,14 +29,12 @@ public final class GrassNotFloating {
 
     private static int tick = 40;
 
-    @SuppressWarnings("deprecation")
-    public GrassNotFloating() {
-        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, Config.INSTANCE);
+    public GrassNotFloating(FMLJavaModLoadingContext context) {
+        context.registerConfig(ModConfig.Type.COMMON, Config.INSTANCE);
         MinecraftForge.EVENT_BUS.addListener((ChunkEvent.Load event) -> {
             long pos = event.getChunk().getPos().toLong();
-            if (event.getWorld() instanceof ServerLevel && !LOADED_CHUNKS.contains(pos)) {
+            if (event.getLevel() instanceof ServerLevel serverLevel && !LOADED_CHUNKS.contains(pos)) {
                 LOADED_CHUNKS.add(pos);
-                ServerLevel serverLevel = (ServerLevel) event.getWorld();
                 LongSet positions = POSITIONS.get(pos);
                 if (positions == null || positions.isEmpty()) return;
                 for (long position : positions) {
@@ -52,21 +50,21 @@ public final class GrassNotFloating {
                 POSITIONS.remove(pos);
             }
         });
-        MinecraftForge.EVENT_BUS.addListener((TickEvent.WorldTickEvent event) -> {
-            if (event.world instanceof ServerLevel && !TO_REMOVE.isEmpty()) {
+        MinecraftForge.EVENT_BUS.addListener((TickEvent.LevelTickEvent event) -> {
+            if (event.level instanceof ServerLevel && !TO_REMOVE.isEmpty()) {
                 tick--;
                 if (tick <= 0) {
                     tick = 40;
-                    clearBlock((ServerLevel)event.world);
+                    clearBlock((ServerLevel)event.level);
                 }
             }
         });
-        MinecraftForge.EVENT_BUS.addListener((FMLServerStartingEvent event) -> initConfig());
+        MinecraftForge.EVENT_BUS.addListener((ServerStartingEvent event) -> initConfig());
     }
 
     private static void initConfig() {
         Config.UNFLOATABLE.get().forEach(name -> {
-            Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(name));
+            Block block = ForgeRegistries.BLOCKS.getValue(ResourceLocation.parse(name));
             if (block != null) ((IBlock)block).grassnotfloating$setUnfloatable();
         });
     }
