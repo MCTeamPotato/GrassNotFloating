@@ -25,7 +25,6 @@ public final class GrassNotFloating {
     public static final String MOD_ID = "grassnotfloating";
     public static final Long2ObjectMap<LongSet> POSITIONS = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>());
     private static final LongSet TO_REMOVE = LongSets.synchronize(new LongOpenHashSet());
-    private static final LongSet LOADED_CHUNKS = new LongOpenHashSet();
 
     private static int tick = 40;
 
@@ -33,8 +32,7 @@ public final class GrassNotFloating {
         context.registerConfig(ModConfig.Type.COMMON, Config.INSTANCE);
         MinecraftForge.EVENT_BUS.addListener((ChunkEvent.Load event) -> {
             long pos = event.getChunk().getPos().toLong();
-            if (event.getLevel() instanceof ServerLevel serverLevel && !LOADED_CHUNKS.contains(pos)) {
-                LOADED_CHUNKS.add(pos);
+            if (event.getLevel() instanceof ServerLevel serverLevel && event.isNewChunk()) {
                 LongSet positions = POSITIONS.get(pos);
                 if (positions == null || positions.isEmpty()) return;
                 for (long position : positions) {
