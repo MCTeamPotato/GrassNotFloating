@@ -15,8 +15,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
@@ -75,21 +73,20 @@ public final class GrassNotFloating {
             if (event.level instanceof ServerLevel level && event.phase == TickEvent.Phase.START && level.getServer().getTickCount() % 20 == 0) {
                 level.getServer().executeIfPossible(() -> {
                     ResourceLocation dim = level.dimension().location();
-                    LongSet blocks = PendingRemoval.get(level).positions.get(dim);
+                    PendingRemoval toRemove = PendingRemoval.get(level);
+                    LongSet blocks = toRemove.positions.get(dim);
                     if (blocks == null || blocks.isEmpty()) return;
                     long[] positionsArray = blocks.toLongArray();
                     BlockState air = AIR.get();
                     for (long posLong : positionsArray) {
                         BlockPos pos = BlockPos.of(posLong);
                         if (!level.isLoaded(pos)) continue;
-                        ChunkAccess chunk = level.getChunk(pos);
-                        if (!chunk.getStatus().isOrAfter(ChunkStatus.FULL)) continue;
                         level.setBlockAndUpdate(pos, air);
                         blocks.remove(posLong);
                         LOGGER.info("Removed floating block at {}", pos);
                     }
-                    if (blocks.isEmpty()) PendingRemoval.get(level).positions.remove(dim);
-                    PendingRemoval.get(level).setDirty();
+                    if (blocks.isEmpty()) toRemove.positions.remove(dim);
+                    toRemove.setDirty();
                 });
             }
         } catch (Exception e) {
