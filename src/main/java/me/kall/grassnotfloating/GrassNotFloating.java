@@ -47,7 +47,7 @@ public final class GrassNotFloating {
     public void onChunkLoad(ChunkEvent.@NotNull Load event) {
         long chunkKey = event.getChunk().getPos().toLong();
         if (event.getLevel() instanceof ServerLevel level && event.isNewChunk()) {
-            level.getServer().executeIfPossible(() -> {
+            level.getServer().execute(() -> {
                 ResourceLocation dim = level.dimension().location();
                 LongSet tracked = BlockTracker.get(dim, chunkKey, level);
                 if (tracked.isEmpty()) return;
@@ -71,7 +71,7 @@ public final class GrassNotFloating {
     public void onLevelTick(TickEvent.@NotNull LevelTickEvent event) {
         try {
             if (event.level instanceof ServerLevel level && event.phase == TickEvent.Phase.START && level.getServer().getTickCount() % 20 == 0) {
-                level.getServer().executeIfPossible(() -> {
+                level.getServer().execute(() -> {
                     ResourceLocation dim = level.dimension().location();
                     PendingRemoval toRemove = PendingRemoval.get(level);
                     LongSet blocks = toRemove.positions.get(dim);
