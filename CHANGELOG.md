@@ -1,2 +1,2 @@
-# 1.1.0
-Rework. Resolved concurrent issues.
+# 1.1.1
+Fix crash on server shutdown
