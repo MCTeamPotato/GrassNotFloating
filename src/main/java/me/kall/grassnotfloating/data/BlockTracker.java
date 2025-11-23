@@ -1,15 +1,14 @@
 package me.kall.grassnotfloating.data;
 
 import it.unimi.dsi.fastutil.longs.*;
-import it.unimi.dsi.fastutil.objects.*;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.LongArrayTag;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import org.jetbrains.annotations.NotNull;
 
@@ -24,23 +23,23 @@ public class BlockTracker extends SavedData {
         return level.getDataStorage().computeIfAbsent(BlockTracker::load, BlockTracker::new, DATA_NAME);
     }
 
-    public static void add(ResourceKey<Level> dim, long chunkKey, long pos, @NotNull MinecraftServer server) {
-        server.executeIfPossible(() -> {
-            ServerLevel level = server.getLevel(dim);
-            if (level == null) return;
-            BlockTracker data = get(level);
-            data.trackedBlocks.computeIfAbsent(dim.location(), key -> new Long2ObjectOpenHashMap<>())
-                    .computeIfAbsent(chunkKey, key -> new LongOpenHashSet())
-                    .add(pos);
-            data.setDirty();
-        });
+    public static void add(ServerLevel level, long chunkKey, long pos) {
+        BlockTracker data = get(level);
+        MinecraftServer server = level.getServer();
+        if (server.isRunning()) {
+            server.execute(() -> data.trackedBlocks.computeIfAbsent(level.dimension().location(), key -> new Long2ObjectOpenHashMap<>()).computeIfAbsent(chunkKey, key -> new LongOpenHashSet()).add(pos));
+        } else {
+            synchronized (data.trackedBlocks) {
+                data.trackedBlocks.computeIfAbsent(level.dimension().location(), key -> new Long2ObjectOpenHashMap<>()).computeIfAbsent(chunkKey, key -> new LongOpenHashSet()).add(pos);
+            }
+        }
+        data.setDirty();
     }
 
     public static LongSet get(ResourceLocation dim, long chunkKey, @NotNull ServerLevel level) {
         BlockTracker data = get(level);
         return data.trackedBlocks.getOrDefault(dim, Long2ObjectMaps.emptyMap()).getOrDefault(chunkKey, LongSets.emptySet());
     }
-
 
     public static @NotNull BlockTracker load(@NotNull CompoundTag tag) {
         BlockTracker tracker = new BlockTracker();
