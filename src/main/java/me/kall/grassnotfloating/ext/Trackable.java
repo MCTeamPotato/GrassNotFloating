@@ -1,4 +1,4 @@
-package me.kall.grassnotfloating.api;
+package me.kall.grassnotfloating.ext;
 
 public interface Trackable {
     boolean float$tracked();
