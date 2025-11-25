@@ -12,14 +12,15 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
-import net.minecraftforge.eventbus.api.IEventBus;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -35,9 +36,8 @@ public final class GrassNotFloating {
 
     private static final Supplier<BlockState> AIR = Blocks.AIR::defaultBlockState;
 
-    public GrassNotFloating(@NotNull FMLJavaModLoadingContext context) {
-        IEventBus modBus = context.getModEventBus();
-        IEventBus forgeBus = MinecraftForge.EVENT_BUS;
+    public GrassNotFloating(@NotNull IEventBus modBus, Dist dist, @NotNull ModContainer container) {
+        IEventBus forgeBus = NeoForge.EVENT_BUS;
 
         modBus.addListener((FMLCommonSetupEvent event) -> FloatConfig.initConfig());
         modBus.addListener(FloatConfig::configLoad);
@@ -46,7 +46,7 @@ public final class GrassNotFloating {
         forgeBus.addListener(this::blockChange);
         forgeBus.addListener(this::chunkLoad);
 
-        context.registerConfig(ModConfig.Type.COMMON, FloatConfig.INSTANCE);
+        container.registerConfig(ModConfig.Type.COMMON, FloatConfig.INSTANCE);
     }
 
     private void dataRebuild(@NotNull ServerStartedEvent event) {

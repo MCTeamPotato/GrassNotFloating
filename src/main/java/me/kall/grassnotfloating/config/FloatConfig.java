@@ -4,12 +4,12 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import me.kall.grassnotfloating.GrassNotFloating;
 import me.kall.grassnotfloating.ext.Trackable;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
-import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.neoforged.fml.event.config.ModConfigEvent;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -18,11 +18,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class FloatConfig {
-    public static final ForgeConfigSpec INSTANCE;
-    public static final ForgeConfigSpec.ConfigValue<List<? extends String>> TRACKED;
+    public static final ModConfigSpec INSTANCE;
+    public static final ModConfigSpec.ConfigValue<List<? extends String>> TRACKED;
 
     static {
-        ForgeConfigSpec.Builder builder = new ForgeConfigSpec.Builder();
+        ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
         builder.push(GrassNotFloating.MOD_ID);
         TRACKED = builder.comment("Support registry entries and tags", "Please add 'tag:' before tag or the parsing will go wrong", "'minecraft' namespace is not omittable").defineList("UnfloatableBlocks", Lists.newArrayList("minecraft:grass", "minecraft:fern", "minecraft:tall_grass", "tag:minecraft:flowers"), Predicates.alwaysTrue());
         builder.pop();
@@ -39,7 +39,7 @@ public class FloatConfig {
                 throw new RuntimeException("Invalid entry in GrassNotFloating config: " + id);
             }
         }).collect(Collectors.toSet());
-        for (Map.Entry<ResourceKey<Block>, Block> entry : ForgeRegistries.BLOCKS.getEntries()) {
+        for (Map.Entry<ResourceKey<Block>, Block> entry : BuiltInRegistries.BLOCK.entrySet()) {
             String name = entry.getKey().location().toString();
             Block block = entry.getValue();
             ((Trackable)block).float$setTracked(tracked.contains(name) || block.defaultBlockState().getTags().anyMatch(blockTagKey -> tags.contains(blockTagKey.location())));
