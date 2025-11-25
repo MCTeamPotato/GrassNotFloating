@@ -9,19 +9,22 @@ import me.kall.grassnotfloating.ext.Trackable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.level.ChunkEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -36,25 +39,30 @@ public final class GrassNotFloating {
         IEventBus modBus = context.getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
-        modBus.addListener((ModConfigEvent.Loading event) -> FloatConfig.configLoad(event));
-        modBus.addListener((ModConfigEvent.Reloading event) -> FloatConfig.configLoad(event));
+        modBus.addListener((FMLCommonSetupEvent event) -> FloatConfig.initConfig());
+        modBus.addListener(FloatConfig::configLoad);
 
+        forgeBus.addListener(this::dataRebuild);
         forgeBus.addListener(this::blockChange);
-        forgeBus.addListener(this::loadChunk);
+        forgeBus.addListener(this::chunkLoad);
 
         context.registerConfig(ModConfig.Type.COMMON, FloatConfig.INSTANCE);
+    }
+
+    private void dataRebuild(@NotNull ServerStartedEvent event) {
+        event.getServer().execute(() -> event.getServer().getAllLevels().forEach(level -> Unfloatable.get(level).rebuild(level)));
     }
 
     private void blockChange(@NotNull BlockChangeEvent event) {
         ServerLevel level = event.level();
         long chunk = event.chunkPos();
         long block = event.blockPos();
-        if (((Trackable)event.oldState().getBlock()).float$tracked()) level.getServer().execute(() -> Unfloatable.get(level).remove(chunk, block));
-        if (((Trackable)event.newState().getBlock()).float$tracked()) level.getServer().execute(() -> Unfloatable.get(level).add(chunk, block));
+        if (((Trackable)event.oldState().getBlock()).float$tracked()) level.getServer().execute(() -> Unfloatable.get(level).remove(level, chunk, block));
+        if (((Trackable)event.newState().getBlock()).float$tracked()) level.getServer().execute(() -> Unfloatable.get(level).add(level, chunk, block));
     }
 
     @SuppressWarnings("PatternVariableCanBeUsed")
-    private void loadChunk(ChunkEvent.@NotNull Load event) {
+    private void chunkLoad(ChunkEvent.@NotNull Load event) {
         ChunkPos chunkPos = event.getChunk().getPos();
         int chunkX = chunkPos.x;
         int chunkZ = chunkPos.z;
@@ -62,7 +70,7 @@ public final class GrassNotFloating {
         if (event.getLevel() instanceof ServerLevel) {
             ServerLevel level = (ServerLevel) event.getLevel();
             ChunkData<Long, BlockState> unfloatable = Unfloatable.get(level);
-            Set<Long> tracked = unfloatable.viewChunk(chunkKey);
+            Set<Long> tracked = unfloatable.viewChunk(level, chunkKey);
             if (tracked.isEmpty()) return;
             level.getServer().execute(new AirDetect(tracked, level, chunkX, chunkZ, AIR.get(), chunkKey, unfloatable));
         }
@@ -83,17 +91,41 @@ public final class GrassNotFloating {
                 }
             }
 
-            unfloatable.data().remove(chunkKey);
+            Optional.ofNullable(unfloatable.data().get(level.dimension().location())).ifPresent(map -> map.remove(chunkKey));
         }
     }
 
-    private record Removal(ServerLevel level, int chunkX, int chunkZ, BlockPos airPos, BlockState air) implements Runnable {
+    private static class Removal implements Runnable {
+        private final ServerLevel level;
+        private final int chunkX;
+        private final int chunkZ;
+        private final BlockPos airPos;
+        private final BlockState air;
+        private int retries = 0;
+
+        public Removal(ServerLevel level, int chunkX, int chunkZ, BlockPos airPos, BlockState air) {
+            this.level = level;
+            this.chunkX = chunkX;
+            this.chunkZ = chunkZ;
+            this.airPos = airPos;
+            this.air = air;
+        }
+
         @Override
         public void run() {
+            if (retries > 20) {
+                GrassNotFloating.LOGGER.warn("Gave up removing float at {} after {} retries", airPos, retries);
+                return;
+            }
+
             if (level.hasChunk(chunkX, chunkZ)) {
-                LOGGER.info("Removing float {} at {}", level.getBlockState(airPos).getBlock().toString(), airPos);
-                level.setBlockAndUpdate(airPos, air);
+                Block block = level.getBlockState(airPos).getBlock();
+                if (((Trackable)block).float$tracked()){
+                    LOGGER.info("Removing float {} at {}", block, airPos);
+                    level.setBlockAndUpdate(airPos, air);
+                }
             } else {
+                this.retries++;
                 Executor.runAfter(1, this);
             }
         }

@@ -28,14 +28,14 @@ public class FloatConfig {
         INSTANCE = builder.build();
     }
 
-    private static void initConfig() {
+    public static void initConfig() {
         Set<String> tracked = new ObjectOpenHashSet<>(TRACKED.get());
         for (Map.Entry<ResourceKey<Block>, Block> entry : ForgeRegistries.BLOCKS.getEntries()) {
             ((Trackable)entry.getValue()).float$setTracked(tracked.contains(entry.getKey().location().toString()));
         }
     }
 
-    public static void configLoad(@NotNull ModConfigEvent event) {
+    public static void configLoad(@NotNull ModConfigEvent.Reloading event) {
         if (event.getConfig().getModId().equals(GrassNotFloating.MOD_ID)) initConfig();
     }
 }
