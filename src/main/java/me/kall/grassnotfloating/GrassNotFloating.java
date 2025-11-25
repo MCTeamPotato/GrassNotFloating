@@ -13,13 +13,13 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.minecraftforge.fml.event.server.FMLServerStartedEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,7 +50,7 @@ public final class GrassNotFloating {
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FloatConfig.INSTANCE);
     }
 
-    private void dataRebuild(@NotNull ServerStartedEvent event) {
+    private void dataRebuild(@NotNull FMLServerStartedEvent event) {
         event.getServer().execute(() -> event.getServer().getAllLevels().forEach(level -> Unfloatable.get(level).rebuild(level)));
     }
 
@@ -62,7 +62,6 @@ public final class GrassNotFloating {
         if (((Trackable)event.newState().getBlock()).float$tracked()) level.getServer().execute(() -> Unfloatable.get(level).add(level, chunk, block));
     }
 
-    @SuppressWarnings("PatternVariableCanBeUsed")
     private void chunkLoad(ChunkEvent.@NotNull Load event) {
         ChunkPos chunkPos = event.getChunk().getPos();
         int chunkX = chunkPos.x;
@@ -77,7 +76,25 @@ public final class GrassNotFloating {
         }
     }
 
-    private record AirDetect(Set<Long> tracked, ServerLevel level, int chunkX, int chunkZ, BlockState air, long chunkKey, ChunkData<Long, BlockState> unfloatable) implements Runnable {
+    private static final class AirDetect implements Runnable {
+        final Set<Long> tracked;
+        final ServerLevel level;
+        final int chunkX;
+        final int chunkZ;
+        final BlockState air;
+        final long chunkKey;
+        final ChunkData<Long, BlockState> unfloatable;
+
+        private AirDetect(Set<Long> tracked, ServerLevel level, int chunkX, int chunkZ, BlockState air, long chunkKey, ChunkData<Long, BlockState> unfloatable) {
+            this.tracked = tracked;
+            this.level = level;
+            this.chunkX = chunkX;
+            this.chunkZ = chunkZ;
+            this.air = air;
+            this.chunkKey = chunkKey;
+            this.unfloatable = unfloatable;
+        }
+
         @Override
         public void run() {
             for (long pos : tracked) {
