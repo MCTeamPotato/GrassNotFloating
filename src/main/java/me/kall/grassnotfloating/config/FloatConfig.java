@@ -8,7 +8,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.ForgeConfigSpec;
-import net.minecraftforge.fml.event.config.ModConfigEvent;
+import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +34,7 @@ public class FloatConfig {
         Set<ResourceLocation> tags = TRACKED.get().stream().filter(id -> id.startsWith("tag:")).map(id -> {
             try {
                 String[] parts = id.split(":");
-                return ResourceLocation.fromNamespaceAndPath(parts[1], parts[2]);
+                return new ResourceLocation(parts[1], parts[2]);
             } catch (Exception exception) {
                 throw new RuntimeException("Invalid entry in GrassNotFloating config: " + id);
             }
@@ -42,11 +42,11 @@ public class FloatConfig {
         for (Map.Entry<ResourceKey<Block>, Block> entry : ForgeRegistries.BLOCKS.getEntries()) {
             String name = entry.getKey().location().toString();
             Block block = entry.getValue();
-            ((Trackable)block).float$setTracked(tracked.contains(name) || block.defaultBlockState().getTags().anyMatch(blockTagKey -> tags.contains(blockTagKey.location())));
+            ((Trackable)block).float$setTracked(tracked.contains(name) || block.getTags().stream().anyMatch(tags::contains));
         }
     }
 
-    public static void configLoad(@NotNull ModConfigEvent.Reloading event) {
+    public static void configLoad(@NotNull ModConfig.Reloading event) {
         if (event.getConfig().getModId().equals(GrassNotFloating.MOD_ID)) initConfig();
     }
 }
