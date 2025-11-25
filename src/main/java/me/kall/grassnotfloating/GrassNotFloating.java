@@ -13,9 +13,10 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.event.level.ChunkEvent;
 import net.minecraftforge.event.server.ServerStartedEvent;
+import net.minecraftforge.event.world.ChunkEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -35,8 +36,8 @@ public final class GrassNotFloating {
 
     private static final Supplier<BlockState> AIR = Blocks.AIR::defaultBlockState;
 
-    public GrassNotFloating(@NotNull FMLJavaModLoadingContext context) {
-        IEventBus modBus = context.getModEventBus();
+    public GrassNotFloating() {
+        IEventBus modBus = FMLJavaModLoadingContext.get().getModEventBus();
         IEventBus forgeBus = MinecraftForge.EVENT_BUS;
 
         modBus.addListener((FMLCommonSetupEvent event) -> FloatConfig.initConfig());
@@ -46,7 +47,7 @@ public final class GrassNotFloating {
         forgeBus.addListener(this::blockChange);
         forgeBus.addListener(this::chunkLoad);
 
-        context.registerConfig(ModConfig.Type.COMMON, FloatConfig.INSTANCE);
+        ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FloatConfig.INSTANCE);
     }
 
     private void dataRebuild(@NotNull ServerStartedEvent event) {
@@ -67,8 +68,8 @@ public final class GrassNotFloating {
         int chunkX = chunkPos.x;
         int chunkZ = chunkPos.z;
         long chunkKey = chunkPos.toLong();
-        if (event.getLevel() instanceof ServerLevel) {
-            ServerLevel level = (ServerLevel) event.getLevel();
+        if (event.getWorld() instanceof ServerLevel) {
+            ServerLevel level = (ServerLevel) event.getWorld();
             ChunkData<Long, BlockState> unfloatable = Unfloatable.get(level);
             Set<Long> tracked = unfloatable.viewChunk(level, chunkKey);
             if (tracked.isEmpty()) return;
