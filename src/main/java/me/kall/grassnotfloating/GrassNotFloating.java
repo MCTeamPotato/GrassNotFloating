@@ -14,7 +14,6 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.level.ChunkEvent;
-import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -42,15 +41,10 @@ public final class GrassNotFloating {
         modBus.addListener((FMLCommonSetupEvent event) -> FloatConfig.initConfig());
         modBus.addListener(FloatConfig::configLoad);
 
-        forgeBus.addListener(this::dataRebuild);
         forgeBus.addListener(this::blockChange);
         forgeBus.addListener(this::chunkLoad);
 
         context.registerConfig(ModConfig.Type.COMMON, FloatConfig.INSTANCE);
-    }
-
-    private void dataRebuild(@NotNull ServerStartedEvent event) {
-        event.getServer().execute(() -> event.getServer().getAllLevels().forEach(level -> Unfloatable.get(level).rebuild(level)));
     }
 
     private void blockChange(@NotNull BlockChangeEvent event) {

@@ -115,7 +115,7 @@ dependencies {
     }
 
     if (embeddiumIntegration) modImplementation("curse.maven:embeddium-908741:${embeddium}")
-    if (useDuplicationLess) modImplementation("curse.maven:duplicationless-1380105:${duplicationLess}")
+    modImplementation("curse.maven:duplicationless-1380105:${duplicationLess}")
 }
 
 processResources {
