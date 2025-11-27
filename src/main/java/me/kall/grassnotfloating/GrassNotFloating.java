@@ -43,15 +43,10 @@ public final class GrassNotFloating {
         modBus.addListener((FMLCommonSetupEvent event) -> FloatConfig.initConfig());
         modBus.addListener(FloatConfig::configLoad);
 
-        forgeBus.addListener(this::dataRebuild);
         forgeBus.addListener(this::blockChange);
         forgeBus.addListener(this::chunkLoad);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FloatConfig.INSTANCE);
-    }
-
-    private void dataRebuild(@NotNull ServerStartedEvent event) {
-        event.getServer().execute(() -> event.getServer().getAllLevels().forEach(level -> Unfloatable.get(level).rebuild(level)));
     }
 
     private void blockChange(@NotNull BlockChangeEvent event) {
