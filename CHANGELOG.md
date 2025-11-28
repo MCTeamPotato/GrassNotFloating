@@ -1,2 +1,3 @@
-# 1.2.1
-Fix https://github.com/MCTeamPotato/Kasualix-Issue-Tracker/issues/202#issuecomment-3581734786
+# 1.2.2
+- Re-introduce data-rebuild but avoid getting it stuck on world loading.
+- Add "tag:minecraft:tall_flowers" to default config

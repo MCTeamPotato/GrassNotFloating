@@ -5,6 +5,7 @@ import me.kall.duplicationless.event.BlockChangeEvent;
 import me.kall.duplicationless.util.Executor;
 import me.kall.grassnotfloating.config.FloatConfig;
 import me.kall.grassnotfloating.data.Unfloatable;
+import me.kall.grassnotfloating.ext.DatRebuilder;
 import me.kall.grassnotfloating.ext.Trackable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -14,6 +15,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.world.ChunkEvent;
+import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -45,8 +47,38 @@ public final class GrassNotFloating {
 
         forgeBus.addListener(this::blockChange);
         forgeBus.addListener(this::chunkLoad);
+        forgeBus.addListener(this::dataRebuild);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FloatConfig.INSTANCE);
+    }
+
+    @SuppressWarnings("PatternVariableCanBeUsed")
+    private void dataRebuild(WorldEvent.@NotNull Load event) {
+        if (event.getWorld() instanceof ServerLevel) {
+            ServerLevel level = (ServerLevel) event.getWorld();
+            if (((DatRebuilder)level).data$rebuilt()) return;
+            Runnable rebuildTask = new Runnable() {
+                private int tries;
+
+                @Override
+                public void run() {
+                    if (tries >= 20) return;
+                    if (!level.players().isEmpty()) {
+                        BlockPos pos = level.players().get(0).blockPosition();
+                        if (level.isLoaded(pos)) {
+                            LOGGER.info("Start data rebuilding...");
+                            Unfloatable.get(level).rebuild(level);
+                            LOGGER.info("Data rebuilt!");
+                            ((DatRebuilder) level).data$setRebuilt();
+                            return;
+                        }
+                    }
+                    tries++;
+                    Executor.runAfter(1, this);
+                }
+            };
+            Executor.run(rebuildTask);
+        }
     }
 
     private void blockChange(@NotNull BlockChangeEvent event) {
