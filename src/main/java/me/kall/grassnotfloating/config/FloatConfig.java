@@ -24,7 +24,7 @@ public class FloatConfig {
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
         builder.push(GrassNotFloating.MOD_ID);
-        TRACKED = builder.comment("Support registry entries and tags", "Please add 'tag:' before tag or the parsing will go wrong", "'minecraft' namespace is not omittable").defineList("UnfloatableBlocks", Lists.newArrayList("minecraft:grass", "minecraft:fern", "minecraft:tall_grass", "tag:minecraft:flowers"), Predicates.alwaysTrue());
+        TRACKED = builder.comment("Support registry entries and tags", "Please add 'tag:' before tag or the parsing will go wrong", "'minecraft' namespace is not omittable").defineList("UnfloatableBlocks", Lists.newArrayList("minecraft:grass", "minecraft:fern", "minecraft:tall_grass", "tag:minecraft:flowers", "tag:minecraft:tall_flowers"), Predicates.alwaysTrue());
         builder.pop();
         INSTANCE = builder.build();
     }

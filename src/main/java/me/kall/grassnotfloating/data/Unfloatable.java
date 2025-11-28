@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 import me.kall.duplicationless.data.ChunkData;
+import me.kall.grassnotfloating.ext.Trackable;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,12 +24,12 @@ public class Unfloatable extends ChunkData.BlockData {
 
     @Override
     public boolean dataTrustable() {
-        return true;
+        return false;
     }
 
     @Override
     public @Nullable Predicate<BlockState> validation() {
-        return null;
+        return state -> ((Trackable)state.getBlock()).float$tracked();
     }
 
     public static @NotNull ChunkData<Long, BlockState> get(ServerLevel level) {
