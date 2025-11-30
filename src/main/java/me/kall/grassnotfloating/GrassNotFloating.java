@@ -5,7 +5,6 @@ import me.kall.duplicationless.event.BlockChangeEvent;
 import me.kall.duplicationless.util.Executor;
 import me.kall.grassnotfloating.config.FloatConfig;
 import me.kall.grassnotfloating.data.Unfloatable;
-import me.kall.grassnotfloating.ext.DatRebuilder;
 import me.kall.grassnotfloating.ext.Trackable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
@@ -21,7 +20,6 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.level.ChunkEvent;
-import net.neoforged.neoforge.event.level.LevelEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -51,31 +49,11 @@ public final class GrassNotFloating {
     }
 
     @SuppressWarnings("PatternVariableCanBeUsed")
-    private void dataRebuild(LevelEvent.@NotNull Load event) {
+    private void dataRebuild(ChunkEvent.@NotNull Load event) {
         if (event.getLevel() instanceof ServerLevel) {
             ServerLevel level = (ServerLevel) event.getLevel();
-            if (((DatRebuilder)level).data$rebuilt()) return;
-            Runnable rebuildTask = new Runnable() {
-                private int tries;
-
-                @Override
-                public void run() {
-                    if (tries >= 20) return;
-                    if (!level.players().isEmpty()) {
-                        BlockPos pos = level.players().getFirst().blockPosition();
-                        if (level.isLoaded(pos)) {
-                            LOGGER.info("Start data rebuilding...");
-                            Unfloatable.get(level).rebuild(level);
-                            LOGGER.info("Data rebuilt!");
-                            ((DatRebuilder) level).data$setRebuilt();
-                            return;
-                        }
-                    }
-                    tries++;
-                    Executor.runAfter(1, this);
-                }
-            };
-            Executor.run(rebuildTask);
+            ChunkPos chunkPos = event.getChunk().getPos();
+            level.getServer().execute(() -> Unfloatable.get(level).rebuildChunk(level, chunkPos));
         }
     }
 
